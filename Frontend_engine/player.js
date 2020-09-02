@@ -23,15 +23,11 @@ fetch(URL).then(r => r.text()).then(result => {
     //Display first html element on the page
     div.innerHTML= firstStep.action.contents["#content"];
 
+
 })
 
-
-
-
-
-
-
-
-
-
+//Connect to the background file
+chrome.runtime.sendMessage("temp", (funcToSend) =>{
+    console.log(funcToSend);
+  });
 

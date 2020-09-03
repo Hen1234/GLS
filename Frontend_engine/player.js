@@ -4,7 +4,7 @@ const URL = "https://guidedlearning.oracle.com/player/latest/api/scenario/get/v_
 let stepsArray;
 let currentStep;
 let currentStepID;
-let tootipDiv;
+let tooltipDiv;
 let sttipDiv;
 let tiplates;
 let cssCode;
@@ -28,7 +28,6 @@ fetch(URL).then(r => r.text()).then(result => {
     //create first step
     createNewStep();
     
-
 })
 
 
@@ -45,15 +44,14 @@ function loadCSS(){
 
 function createDivContainer(){
 
-    tootipDiv = document.createElement("div"); 
-    tootipDiv.className = "tooltip";
+    tooltipDiv = document.createElement("div"); 
+    tooltipDiv.className = "tooltip";
+    tooltipDiv.style.width = "fit-content";
+    
     sttipDiv = document.createElement("div");
     sttipDiv.className = "sttip";
-    sttipDiv.appendChild(tootipDiv);
-
-    //Display html element on the page
-    document.body.appendChild(sttipDiv); 
-
+    sttipDiv.style.position = "absolute";
+    sttipDiv.appendChild(tooltipDiv);
    
 }
 
@@ -64,7 +62,6 @@ function createNewStep(){
     
     //last step
     if(currentStep.action.type === "closeScenario"){
-        console.log("hereLastttt");
         sttipDiv.remove();
         return;
     }
@@ -72,11 +69,29 @@ function createNewStep(){
     let htmlType = currentStep.action.type;
 
     //assign html type for the current step
-    tootipDiv.innerHTML = tiplates[htmlType];
+    tooltipDiv.innerHTML = tiplates[htmlType];
+    tooltipDiv.className = "tooltip "+currentStep.action.classes;
+
+    let stepSelector = currentStep.action.selector;
+    //TODO- step 2 selector
+    if(stepSelector.includes(":contains(")){
+        console.log("hehreerere");
+        stepSelector = stepSelector.substring(0, stepSelector.indexOf(":contains("));
+    }
+
+    //find stepSelector on the page
+    let selectorOnPage = document.querySelector(stepSelector);
+    //let selectorOnPage = $(stepSelector); 
+    selectorOnPage.parentNode.style.position = "relative";
+    //let stepPlacement = currentStep.action.placement;
+    selectorOnPage.parentNode.appendChild(sttipDiv);
 
     //brings every element which has attribute of this- for the content
     document.querySelectorAll('[data-iridize-id=content]')[0].innerHTML = currentStep.action.contents["#content"];
 
+    //sttipDiv.style[stepPlacement] = 0;
+    sttipDiv.style.zIndex = "3543543434";
+    
     //find next button
     document.querySelectorAll('[data-iridize-role=nextBt]')[0].addEventListener("click", nextStep);
     //find prev button
@@ -91,8 +106,7 @@ function nextStep(){
     //update the stepIndex
     currentStepID = currentStep.followers[0].next;
     createNewStep();
-
-
+   
 }
 
 function prevStep(){

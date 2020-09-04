@@ -6,9 +6,9 @@
 	"content_scripts":[
 	{ 
 		"matches":["https://www.google.com/",
-		"http://www.google.com/"
-		],
-		"js": ["player.js"]
+        "http://www.google.com/"
+        ],
+		"js": ["jquery-3.5.1.min.js", "player.js"]
 	}
     ],
     "permissions": [
@@ -16,12 +16,12 @@
         "activeTab", 
         "tabs",
         "https://www.google.com/",
-		"http://www.google.com/"
+        "http://www.google.com/"
 
     ],
     "devtools_page": "devtools.html",
     "background": {
-        "scripts": ["background.js"]
+        "scripts": ["jquery-3.5.1.min.js", "background.js"]
         
       
     }

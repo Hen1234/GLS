@@ -4,6 +4,7 @@ const URL = "https://guidedlearning.oracle.com/player/latest/api/scenario/get/v_
 let stepsArray;
 let currentStep;
 let currentStepID;
+let prevStepID;
 let tooltipDiv;
 let sttipDiv;
 let tiplates;
@@ -27,6 +28,7 @@ fetch(URL).then(r => r.text()).then(result => {
     createDivContainer();
     //create first step
     createNewStep();
+
     
 })
 
@@ -52,6 +54,8 @@ function createDivContainer(){
     sttipDiv.className = "sttip";
     sttipDiv.style.position = "absolute";
     sttipDiv.appendChild(tooltipDiv);
+     //sttipDiv.style[stepPlacement] = 0;
+     sttipDiv.style.zIndex = "3543543434";
    
 }
 
@@ -62,9 +66,27 @@ function createNewStep(){
     
     //last step
     if(currentStep.action.type === "closeScenario"){
-        sttipDiv.remove();
+        closeGuide();
         return;
     }
+
+    updateHtmlTypeStep();
+    updateSelectorStep();
+    updateContentStep();
+    
+    //find next button
+    document.querySelectorAll('[data-iridize-role=nextBt]')[0].addEventListener("click", nextStep);
+    //find prev button
+    document.querySelectorAll('[data-iridize-role=prevBt]')[0].addEventListener("click", prevStep);
+    //find the images button
+    document.querySelectorAll('.gb_g')[1].addEventListener("click", imagesSection);
+    //find the "close" button
+    document.querySelectorAll('[data-iridize-role=closeBt]')[0].addEventListener("click", closeGuide);
+
+
+}
+
+function updateHtmlTypeStep(){
 
     let htmlType = currentStep.action.type;
 
@@ -72,46 +94,75 @@ function createNewStep(){
     tooltipDiv.innerHTML = tiplates[htmlType];
     tooltipDiv.className = "tooltip "+currentStep.action.classes;
 
+}
+
+function updateSelectorStep(){
+
     let stepSelector = currentStep.action.selector;
+    let selectorOnPage;
     //TODO- step 2 selector
+    //find stepSelector on the page
     if(stepSelector.includes(":contains(")){
-        console.log("hehreerere");
+        selectorOnPage = $(stepSelector);    //////jquery
         stepSelector = stepSelector.substring(0, stepSelector.indexOf(":contains("));
+        selectorOnPage = document.querySelectorAll(stepSelector)[1];
+        document.querySelectorAll(stepSelector)[1].href = "javascript:void(0);";
+      
+
+        
+    }else{
+        selectorOnPage = document.querySelector(stepSelector);
     }
 
-    //find stepSelector on the page
-    let selectorOnPage = document.querySelector(stepSelector);
-    //let selectorOnPage = $(stepSelector); 
     selectorOnPage.parentNode.style.position = "relative";
     //let stepPlacement = currentStep.action.placement;
     selectorOnPage.parentNode.appendChild(sttipDiv);
+}
+
+function updateContentStep(){
 
     //brings every element which has attribute of this- for the content
     document.querySelectorAll('[data-iridize-id=content]')[0].innerHTML = currentStep.action.contents["#content"];
 
-    //sttipDiv.style[stepPlacement] = 0;
-    sttipDiv.style.zIndex = "3543543434";
-    
-    //find next button
-    document.querySelectorAll('[data-iridize-role=nextBt]')[0].addEventListener("click", nextStep);
-    //find prev button
-    document.querySelectorAll('[data-iridize-role=prevBt]')[0].addEventListener("click", prevStep);
-
-
 }
-
 
 function nextStep(){
 
+    prevStepID = currentStepID;
     //update the stepIndex
     currentStepID = currentStep.followers[0].next;
     createNewStep();
-   
+
 }
 
 function prevStep(){
 
+    if(prevStepID){
+        currentStepID = prevStepID;
+        createNewStep();
+    }
     
+
+    
+}
+
+function imagesSection(){
+
+    document.querySelector('[data-iridize-role=nextBt]').style.display = "inline-flex";
+}
+
+function closeGuide(){
+
+    //remove all listeners
+    document.querySelectorAll('[data-iridize-role=nextBt]')[0].removeEventListener("click", nextStep);
+    document.querySelectorAll('[data-iridize-role=prevBt]')[0].removeEventListener("click", prevStep);
+    document.querySelectorAll('[data-iridize-role=closeBt]')[0].removeEventListener("click", closeGuide);
+    document.querySelectorAll('.gb_g')[1].removeEventListener("click", imagesSection);
+    //update image section ref
+    document.querySelectorAll('.gb_g')[1].href = "https://www.google.co.il/imghp?hl=en&tab=wi&authuser=0&ogbl";
+
+    sttipDiv.remove();
+ 
 }
 
 

@@ -17,7 +17,12 @@ let prevBt;
 let nextBt;
 let closeBt;
 let currentStepHref;
-
+let wdInterval;
+let idle;
+let mouseX;
+let mouseY;
+let lastMouseX;
+let lastMouseY;
 
 //Replace the tooltips when the browser window is resized
 window.addEventListener('resize', function(event){
@@ -25,6 +30,7 @@ window.addEventListener('resize', function(event){
         placeTooltipAccordingToSelector(selectorOnPage);
 });
 
+//TODO- try JSONP or with jquery or with jsonFetch
 //Fetching the data from the given endpoint
 fetch(guideURL).then(response => response.text()).then(result => {
 
@@ -40,6 +46,10 @@ fetch(guideURL).then(response => response.text()).then(result => {
     userStepsArray = [];
     indexUserStepsArray = 0;
 
+    //for the watchDog
+    document.addEventListener('mousemove', onMouseUpdate);
+    lastMouseX = 0; lastMouseY = 0;
+
     //CSS code from the data
     cssCode = result.data.css;
     loadCSS();
@@ -48,6 +58,8 @@ fetch(guideURL).then(response => response.text()).then(result => {
     createNewStep();
 
 
+}).catch(error => {
+    throw new Error("Invalid URL");
 })
 
 
@@ -58,7 +70,6 @@ function loadCSS(){
         console.log(funcToSend);
 
     });
-
 
 }
 
@@ -100,6 +111,8 @@ function createNewStep(){
 
     //find the current step
     currentStep = stepsArray.find((step) => step.id === currentStepID)
+    watchDog();
+
     //update the steps array of the user
     userStepsArray[indexUserStepsArray] = currentStepID;
     
@@ -121,6 +134,46 @@ function createNewStep(){
     //listener the "close" button
     closeBt.addEventListener("click", closeGuide);
     
+    
+}
+
+function watchDog(){
+
+     if(currentStep.action.watchDog){
+        wdInterval = setInterval(checkMovement, 400);
+        setTimeout(function(){ 
+            if(mouseX === lastMouseX && mouseY === lastMouseY){
+                console.warn("Warning: user is idle for 3 seconds, step "+currentStepID);
+                 //TODO RESET?
+            }
+               
+        }, 3000);
+
+    }
+
+}
+
+
+function checkMovement(){
+
+    //there was no mousemove from the last time
+    //idle = (mouseY === lastMouseY && mouseX === lastMouseX) ? true : false
+    if(mouseX === lastMouseX && mouseY === lastMouseY){
+        idle = true;
+        console.log("idle");
+    }else{
+        idle = false;
+           
+    }
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+
+}
+
+function onMouseUpdate(e){
+
+    mouseX = e.pageX;
+    mouseY = e.pageY;
     
 }
 

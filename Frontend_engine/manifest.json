@@ -5,6 +5,7 @@
 	"version":"0.1",
 	"content_scripts":[
 	{ 
+        "run_at": "document_end",
 		"matches":["https://www.google.com/",
         "http://www.google.com/"
         ],

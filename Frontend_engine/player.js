@@ -5,6 +5,7 @@ let stepsArray;
 let userStepsArray;
 let indexUserStepsArray;
 let currentStep;
+let selectorOnPage;
 let currentStepID;
 let prevStepID;
 let tooltipDiv;
@@ -12,6 +13,17 @@ let sttipDiv;
 let tooltipArrowDiv;
 let tiplates;
 let cssCode;
+let prevBt;
+let nextBt;
+let closeBt;
+let currentStepHref;
+
+
+//Replace the tooltips when the browser window is resized
+window.addEventListener('resize', function(event){
+    if(selectorOnPage)
+        placeTooltipAccordingToSelector(selectorOnPage);
+});
 
 //Fetching the data from the given endpoint
 fetch(guideURL).then(response => response.text()).then(result => {
@@ -35,7 +47,7 @@ fetch(guideURL).then(response => response.text()).then(result => {
     //create first step
     createNewStep();
 
-    
+
 })
 
 
@@ -70,6 +82,7 @@ function createDivContainer(){
      tooltipArrowDiv.className = "tooltip-arrow";
      tooltipArrowDiv.style.position = "absolute";
 
+     //TODO explain
      tooltipDiv.style.position = "relative";
      tooltipDiv.style.border = "1px solid gray";
      tooltipDiv.style.borderRadius = "3px";
@@ -99,17 +112,16 @@ function createNewStep(){
     updateHtmlTypeStep();
     updateSelectorStep();
     updateContentStep();
+    updateStepsCount();
     
-    //find next button
-    document.querySelectorAll('[data-iridize-role=nextBt]')[0].addEventListener("click", nextStep);
-    //find prev button
-    document.querySelectorAll('[data-iridize-role=prevBt]')[0].addEventListener("click", prevStep);
-    //find the images button
-    document.querySelectorAll('.gb_g')[1].addEventListener("click", imagesSection);
-    //find the "close" button
-    document.querySelectorAll('[data-iridize-role=closeBt]')[0].addEventListener("click", closeGuide);
-
-
+    //listener next button
+    nextBt.addEventListener("click", nextStep);
+    //listener prev button
+    prevBt.addEventListener("click", prevStep);
+    //listener the "close" button
+    closeBt.addEventListener("click", closeGuide);
+    
+    
 }
 
 
@@ -170,6 +182,21 @@ function updateHtmlTypeStep(){
     tooltipDiv.innerHTML = tiplates[htmlType];
     tooltipDiv.className = "tooltip in " + currentStep.action.classes +" "+ currentStep.action.placement;
 
+    //assign the prev/next/close buttons
+    prevBt = document.querySelectorAll('[data-iridize-role=prevBt]')[0];
+    nextBt = document.querySelectorAll('[data-iridize-role=nextBt]')[0];
+    closeBt = document.querySelectorAll('[data-iridize-role=closeBt]')[0];
+
+    //assign the classes attribute from the json guide causes the "next" button hides part of the "prev" button
+    //fix it manually here 
+    prevBt.style.maxWidth = "fit-content";
+    prevBt.parentElement.style.height = "100%";
+    
+    //inner text of the "next" button
+    if(currentStep.action.roleTexts){
+        if(currentStep.action.roleTexts.nextBt)
+            nextBt.innerText= currentStep.action.roleTexts.nextBt;   
+    }
      //for the arrow to be the first child
      tooltipDiv.insertBefore(tooltipArrowDiv, tooltipDiv.childNodes[0]);
      placeArrow();
@@ -181,15 +208,39 @@ function updateSelectorStep(){
     let stepSelector = currentStep.action.selector;
 
      //find stepSelector on the page
-    let selectorOnPage = $(stepSelector)[0];
-    console.log(selectorOnPage);
+    selectorOnPage = $(stepSelector);
+    
+    console.dir(selectorOnPage);
+    selectorOnPage = selectorOnPage.length > 1 ? correctSelector(selectorOnPage) : selectorOnPage[0];
 
-    //for the images section
+    //for the "images" section- there is a condition to forward the next step
+    //as long as the user uses the guide, he is not able to get the "images" section
     if(currentStep.next){
+        currentStepHref = selectorOnPage.href;
         selectorOnPage.href = "javascript:void(0);";
+        //selectorOnPage.attr("href", "javascript:void(0);");
+        console.dir(selectorOnPage);
+         //listener the images button
+        selectorOnPage.addEventListener("click", imagesSection);
     }
     
     placeTooltipAccordingToSelector(selectorOnPage);
+}
+
+function correctSelector(selectorsElementsOnPage) {
+    let validElement =  selectorsElementsOnPage[0];
+		//for loop jQuery
+        selectorsElementsOnPage.each((index, element) => {
+        const elementOffset = element.getBoundingClientRect();
+        if(elementOffset.left !== 0 || elementOffset.top !== 0){
+            validElement = element;
+            return false;
+        }
+        });
+    console.dir(validElement);
+    return  validElement;
+
+
 }
 
 function updateContentStep(){
@@ -199,13 +250,25 @@ function updateContentStep(){
 
 }
 
+function updateStepsCount(){
+
+    let stepCount = document.querySelector('[data-iridize-role=stepCount]');
+    stepCount.innerHTML = stepCount.innerHTML+ (currentStep.action.stepOrdinal);
+    
+    let stepsCount = document.querySelector('[data-iridize-role=stepsCount]');
+    //refer the step ordinal of the last actual step as the same step ordinal of the step before it as written in the json guide
+    stepsCount.innerHTML = stepsCount.innerHTML+ (stepsArray.length-2);
+
+}
+
 function nextStep(){
 
     prevStepID = userStepsArray[indexUserStepsArray];
     //userStepsArray[indexUserStepsArray] = currentStepID;
     console.dir(userStepsArray);
+    //update the userStepIndex
     indexUserStepsArray++;
-    //update the stepIndex
+    //update the current step ID
     currentStepID = currentStep.followers[0].next;
     createNewStep();
 
@@ -215,26 +278,37 @@ function prevStep(){
 
     if(prevStepID){
         currentStepID = userStepsArray[indexUserStepsArray-1];
+        indexUserStepsArray--;
+        if(indexUserStepsArray === 0){
+            prevStepID = null;
+        }
         createNewStep();
     }
      
 }
 
-function imagesSection(){
+function imagesSection(event){
 
+    event.preventDefault();
     document.querySelector('[data-iridize-role=nextBt]').style.display = "inline-flex";
+    selectorOnPage.href = currentStepHref;
+    selectorOnPage.removeEventListener("click", imagesSection);
+   
 }
 
 function closeGuide(){
 
     //remove all listeners
-    document.querySelectorAll('[data-iridize-role=nextBt]')[0].removeEventListener("click", nextStep);
-    document.querySelectorAll('[data-iridize-role=prevBt]')[0].removeEventListener("click", prevStep);
-    document.querySelectorAll('[data-iridize-role=closeBt]')[0].removeEventListener("click", closeGuide);
-    document.querySelectorAll('.gb_g')[1].removeEventListener("click", imagesSection);
-    //update image section ref
-    document.querySelectorAll('.gb_g')[1].href = "https://www.google.co.il/imghp?hl=en&tab=wi&authuser=0&ogbl";
+    nextBt.removeEventListener("click", nextStep);
+    prevBt.removeEventListener("click", prevStep);
+    closeBt.removeEventListener("click", closeGuide);
+    //update the href
+    if(currentStep.next){
+        selectorOnPage.href = currentStepHref;
+        selectorOnPage.removeEventListener("click", imagesSection);
 
+    }
+   
     sttipDiv.remove();
  
 }

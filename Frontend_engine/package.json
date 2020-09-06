@@ -1,0 +1,25 @@
+{
+  "name": "GLS",
+  "version": "1.0.0",
+  "description": "",
+  "main": "player.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "jsx"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "testRegex": ".test.js$"
+  },
+  "dependencies": {
+    "jest": "^26.4.2"
+  }
+}

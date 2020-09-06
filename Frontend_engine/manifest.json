@@ -18,7 +18,7 @@
         "tabs",
         "https://www.google.com/",
         "http://www.google.com/"
-
+       
     ],
     "devtools_page": "devtools.html",
     "background": {

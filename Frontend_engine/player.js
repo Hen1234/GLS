@@ -26,9 +26,9 @@ let prevMouseY;
 
 
 //Replace the tooltips when the browser window is resized
-window.addEventListener('resize', reziseFunction);
+window.addEventListener('resize', resizeWindowFunction);
 
-function reziseFunction(){
+function resizeWindowFunction(){
     if(selectorOnPage)
         placeTooltipAccordingToSelector(selectorOnPage);
 }
@@ -48,6 +48,7 @@ function reziseFunction(){
 // }).catch(error => {
 //     throw new Error("Invalid URL");
 // })
+
 const url = chrome.runtime.getURL('data.json');
 
 fetch(url)
@@ -84,13 +85,13 @@ function main(result) {
 }
 
 
-
 function loadCSS(){
 
     //Connect to the background file	    
     chrome.runtime.sendMessage(cssCode.toString());
 
 }
+
 
 /**
  * The function adds HTML elements because of discrepancy between the given HTML 
@@ -141,7 +142,7 @@ function createNewStep(){
 
     //find the current step
     currentStep = stepsArray.find((step) => step.id === currentStepID)
-    watchDog();
+    initWatchDog();
 
     //update the steps array of the user
     userStepsArray[indexUserStepsArray] = currentStepID;
@@ -167,10 +168,11 @@ function createNewStep(){
     
 }
 
+
 /**
  * The function implements the "watchDog" attribute
  */
-function watchDog(){
+function initWatchDog(){
 
      if(currentStep.action.watchDog){
         wdInterval = setInterval(checkMovement, 400);
@@ -332,9 +334,8 @@ function findSelector(selectorsElementsOnPage) {
         }
         });
     return  validElement;
-
-
 }
+
 
 function updateContentStep(){
 
@@ -386,7 +387,6 @@ function prevStep(){
 function imagesSection(event){
 
     event.preventDefault();
-    //document.querySelectorAll('[data-iridize-role=nextBt]')[0].style.display = "inline-flex";
     nextBt.style.display = "inline-flex";
     selectorOnPage.href = currentStepHref;
     selectorOnPage.removeEventListener("click", imagesSection);
@@ -399,7 +399,7 @@ function closeGuide(){
     nextBt.removeEventListener("click", nextStep);
     prevBt.removeEventListener("click", prevStep);
     closeBt.removeEventListener("click", closeGuide);
-    window.removeEventListener('resize', reziseFunction);
+    window.removeEventListener('resize', resizeWindowFunction);
     document.removeEventListener('mousemove', onMouseUpdate);
 
 

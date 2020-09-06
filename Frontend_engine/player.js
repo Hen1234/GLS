@@ -86,7 +86,7 @@ function main(result) {
 
 
 function loadCSS(){
-    
+
     //Connect to the background file	    
     chrome.runtime.sendMessage(cssCode.toString());
 
@@ -369,6 +369,10 @@ function prevStep(){
 
     if(wdInterval > 0) clearInterval(wdInterval);
     if(prevStepID){
+        if(currentStep.next){
+            selectorOnPage.href = currentStepHref;
+            selectorOnPage.removeEventListener("click", imagesSection);
+        }
         currentStepID = userStepsArray[indexUserStepsArray-1];
         indexUserStepsArray--;
         if(indexUserStepsArray === 0){
@@ -382,8 +386,8 @@ function prevStep(){
 function imagesSection(event){
 
     event.preventDefault();
-    document.querySelectorAll('[data-iridize-role=nextBt]')[0].style.display = "inline-flex";
-    //nextBt.style.display = "inline-flex";
+    //document.querySelectorAll('[data-iridize-role=nextBt]')[0].style.display = "inline-flex";
+    nextBt.style.display = "inline-flex";
     selectorOnPage.href = currentStepHref;
     selectorOnPage.removeEventListener("click", imagesSection);
    
